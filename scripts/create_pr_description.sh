@@ -1,33 +1,50 @@
 #!/bin/bash
 
-# Read input (argument OR stdin)
+# =========================
+# Input handling
+# =========================
 if [ -n "$1" ]; then
   INPUT="$1"
 else
   INPUT="$(cat)"
 fi
 
-# Extract parts
 TICKET=$(printf "%s" "$INPUT" | sed -n '1p' | tr -d '\r')
 TEAM=$(printf "%s" "$INPUT" | sed -n '2p' | tr -d '\r')
 XML=$(printf "%s" "$INPUT" | sed '1,2d')
 
-# Fallback if team not provided
+# Fallback team
 if [ -z "$TEAM" ]; then
   TEAM="New Home Build"
 fi
 
-# Colors
-GREEN="\033[0;32m"
+# =========================
+# UI helpers
+# =========================
+LINE="────────────────────────────────────────"
 BLUE="\033[0;34m"
-YELLOW="\033[1;33m"
+GREEN="\033[0;32m"
+DIM="\033[2m"
 RESET="\033[0m"
 
-echo -e "${BLUE}🔍 Processing PR Description...${RESET}"
-echo -e "${YELLOW}• Ticket:${RESET} PBD-$TICKET"
-echo -e "${YELLOW}• Team:${RESET}   $TEAM"
+info() { printf " • %s\n" "$1"; }
+ok()   { printf " ${GREEN}✔${RESET} %s\n" "$1"; }
+
+echo
+echo -e "${DIM}${LINE}${RESET}"
+echo -e "${BLUE} PR Automator • Generate PR Description${RESET}"
+echo -e "${DIM}${LINE}${RESET}"
 echo
 
+info "Ticket : PBD-$TICKET"
+info "Team   : $TEAM"
+echo
+
+info "Processing package.xml…"
+
+# =========================
+# XML parsing
+# =========================
 ROWS=$(
   printf "%s\n" "$XML" | awk '
     /<types>/ { members=""; type=""; inTypes=1; next }
@@ -59,6 +76,11 @@ ROWS=$(
   '
 )
 
+ok "Components parsed"
+
+# =========================
+# PR description output
+# =========================
 OUTPUT="## List of Changed Components
 
 | Component Type          | Component API Name                 |
@@ -86,4 +108,8 @@ $ROWS
 
 printf "%b" "$OUTPUT" | pbcopy
 
-echo -e "${GREEN}✅ PR description generated and copied to clipboard!${RESET}"
+ok "PR description copied to clipboard"
+echo
+echo -e "${GREEN} Done 🎉${RESET}"
+echo -e "${DIM}${LINE}${RESET}"
+echo

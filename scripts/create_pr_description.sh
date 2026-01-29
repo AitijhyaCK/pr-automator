@@ -111,5 +111,6 @@ printf "%b" "$OUTPUT" | pbcopy
 ok "PR description copied to clipboard"
 echo
 echo -e "${GREEN} Done 🎉${RESET}"
+echo -e "${DIM}ℹ You can also chekout: create_ticket_folder.sh · create_promotion_branch.sh (refer to main branch)${RESET}"
 echo -e "${DIM}${LINE}${RESET}"
 echo
